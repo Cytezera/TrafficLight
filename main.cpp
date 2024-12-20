@@ -1,3 +1,5 @@
+#include <vector>
+
 #include <iostream> 
 #include <chrono>
 #include <thread> 
@@ -10,14 +12,14 @@ struct TrafficLightColour{
 class TrafficLight{ 
 public: 
 	TrafficLightColour red = {"RED",5};
-	TrafficLightColour green = {"GREEN", 4}; 
+	TrafficLightColour green = {"GREEN", 3}; 
 	TrafficLightColour yellow = {"YELLOW", 2}; 
 
 	TrafficLightColour* currentLight[3]; //creating a pointer in an array form to store all the structs at once  
 	int currentIndex = 0 ;
 	TrafficLight(): currentLight{ &red, &green, &yellow}, currentIndex(0) {} ; //Allowing it to acess each struct address through numbers 
-	void displayLight(){
-		cout << "Light : " << currentLight[currentIndex]->colour  << endl; 
+	void displayLight(const string inter){
+		cout << inter << "Light : " << currentLight[currentIndex]->colour  << endl; 
 		this_thread::sleep_for(chrono::seconds(currentLight[currentIndex]->timer)); 
 		
 	}
@@ -26,17 +28,24 @@ public:
 		
 		currentIndex = (currentIndex + 1) % 3 ; 
 	}
-	void trafficLightTimer(){
+	void trafficLightTimer(const string inter , int startingIndex){
+		currentIndex = startingIndex;
 		while(true){
 			
-			displayLight(); 
+			displayLight(inter); 
 			changeLight(); 
 		}
 	}	
 
 };
 int main (){
-	TrafficLight TrafficLight; 
-	TrafficLight.trafficLightTimer(); 	
+	TrafficLight light1; 
+	TrafficLight light2; 
+	vector<thread> threads; 
+       	threads.emplace_back(&TrafficLight::trafficLightTimer, &light1 , "Intersection 1 ", 0  ) ; 
+	threads.emplace_back(&TrafficLight::trafficLightTimer, &light2, "Intersection 2" , 1 ) ; 	
+	for (auto& thread: threads){
+		thread.join();
+	}
 	return 0 ;
 }
